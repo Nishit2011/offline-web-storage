@@ -61,6 +61,37 @@ const Order = {
         Order.cart = [];
         Order.render();
     },
+    importCart: async () => {
+        const [ handle ] = await window.showOpenFilePicker();
+        const file = await handle.getFile();
+        try {
+            const content = JSON.parse(await file.text());
+            console.log(content);
+            if (content instanceof Array && content.length > 0) {
+                Order.cart = content;
+            } else {
+                alert("File is invalid");
+            }
+            Order.render();
+        } catch (e) {
+            console.log(e);
+            alert("File is invalid");
+        }
+    },
+    exportCart: async () => {
+        const handle = await window.showSaveFilePicker({
+            types: [{
+              description: "JSON Cart File",
+              accept: {
+                "application/json": [".json"],
+              },
+            }]
+        });
+        const file = await handle.getFile();
+        const writable = await handle.createWritable();
+        await writable.write(JSON.stringify(Order.cart));
+        await writable.close();
+    },
     render: () => {
         Order.save()
         if (Order.cart.length==0) {
@@ -96,6 +127,18 @@ const Order = {
                     </ul>
                      <button onclick="Order.place()">Place Order</button>
                     `;
+                    if (window.showOpenFilePicker) {
+                        html += `
+                            <a class="navlink material-symbols-outlined" 
+                                href="javascript:Order.importCart()" style="color: var(--primaryColor")>
+                                file_upload
+                            </a>
+                            <a class="navlink material-symbols-outlined"  
+                                href="javascript:Order.exportCart()" style="color: var(--primaryColor")>
+                                file_download
+                            </a>
+                        `;
+                    } 
             document.querySelector("#order").innerHTML = html;
         }
     }
